@@ -44,6 +44,7 @@ def main():
         for i in range(0, testX.shape[0]):
             # don't continue running the code until a "begin" is received, otherwise receive iteratively
             while ser.in_waiting < 5:
+                # print(ser.in_waiting, "waiting for begin")
                 pass
                 time.sleep(0.01)
 
@@ -52,6 +53,7 @@ def main():
             # clear the input buffer
             ser.reset_input_buffer()
             if recv.strip() == 'begin':
+                # print("begin sending data...")
                 for j in range(0, testX.shape[1]):
                     for k in range(0, testX.shape[2]):
                         for l in range(0, testX.shape[3]):
@@ -60,11 +62,13 @@ def main():
 
                 # don't continue running the code until a "ok" is received
                 while ser.in_waiting < 2:
+                    # print(ser.in_waiting, "waiting for ok")
                     pass
                 time.sleep(0.01)
                 recv = ser.read(size=ser.in_waiting).decode(encoding='utf8')
                 ser.reset_input_buffer()
                 if recv.strip() == 'ok':
+                    # print("data sent successfully")
                     time.sleep(0.02)
                     # send status 200 to the board
                     send_str = '200 '
@@ -72,6 +76,7 @@ def main():
                     time.sleep(0.01)
                 # receive results from the board, which is a string separated by commas
                 while ser.in_waiting < 10:
+                    # print(ser.in_waiting, "waiting for result")
                     pass
                 recv = ser.read(size=10).decode(encoding='utf8')
                 ser.reset_input_buffer()
@@ -83,6 +88,7 @@ def main():
                 else:
                     resultList.append('1')
                 # inference latency in ms
+                # print("result", recv.split(',')[0], "\tinference latency: ", inference_latency)
                 timeList.append(float(inference_latency) * 1000)
                 ofp.write(str(result) + '\r')
     ofp.close()
@@ -123,8 +129,8 @@ def main():
 
 if __name__ == '__main__':
     argparser = argparse.ArgumentParser()
-    argparser.add_argument('--com', type=str, default='com5')
+    argparser.add_argument('--com', type=str, default='COM8')
     argparser.add_argument('--baudrate', type=int, default=115200)
-    argparser.add_argument('--path_data', type=str,default='path/to/dataset')
+    argparser.add_argument('--path_data', type=str,default='../tinyml_contest_data_training/')
     args = argparser.parse_args()
     main()
